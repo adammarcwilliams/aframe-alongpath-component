@@ -2,6 +2,9 @@
 <html>
 <head>
     <script src="../build.js"></script>
+    <script src="https://unpkg.com/aframe-animation-component@%5E3.2.x/dist/aframe-animation-component.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.20.4/TweenMax.min.js"></script>
+    
 </head>
 <body>
 <a-scene inspector="url: https://rawgit.com/aframevr/aframe-inspector/master/dist/aframe-inspector.min.js">
@@ -14,8 +17,10 @@
         <a-curve-point position="2 2 -3" geometry="primitive:box; height:0.1; width:0.1; depth:0.1" material="color:#ff0000"></a-curve-point>
 	</a-curve>
 
-    <a-box color="#ff0000" width="0.1" height="0.3" depth="0.1"
-           alongpath="curve: #track1; loop:true; dur:6000; rotate:true;">
+    <a-box id='box' color="#ff0000" width="0.1" height="0.3" depth="0.1"
+           alongpath="curve: #track1; rotate: true; animate: false; progress: 0"
+           animation="property: alongpath.progress; dir: alternate; dur: 2000; easing: easeInSine; loop: true; to: 1"
+           >
     </a-box>
 
     <a-draw-curve curveref="#track1" material="shader: line; color: red;"></a-draw-curve>
@@ -28,5 +33,7 @@
 
     <a-sky id="sky" color="#000"></a-sky>
 </a-scene>
+
+
 </body>
 </html>

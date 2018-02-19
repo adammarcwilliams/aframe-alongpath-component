@@ -18,7 +18,9 @@ AFRAME.registerComponent('alongpath', {
         delay: {default: 0},
         loop: {default: false},
         rotate: {default: false},
-        resetonplay: {default:true}
+        resetonplay: {default:true},
+        animate: {default: true},
+        progress: {default: 0}
     },
 
     init: function () {
@@ -55,6 +57,24 @@ AFRAME.registerComponent('alongpath', {
         }
     },
 
+    getI_: function (interval, delay, dur) {
+      var i = 0;
+
+      if (interval - delay >= dur) {
+        // Time is up, we should be at the end of the path
+        i = 1;
+      } else if ((interval - delay < 0)) {
+        // We are still waiting for the delay-time to finish
+        // so keep entity at the beginning of the path
+        i = 0;
+      } else {
+        // Update path position based on timing
+        i = (interval - delay) / dur;
+      }
+
+      return i
+    },
+
     tick: function (time, timeDelta) {
         var curve = this.curve.components['curve'] ? this.curve.components['curve'].curve : null;
 
@@ -64,18 +84,11 @@ AFRAME.registerComponent('alongpath', {
             if (!this.el.is("endofpath")) {
                 this.interval = this.interval + timeDelta;
 
-                var i = 0;
-
-                if (this.interval - this.data.delay >= this.data.dur) {
-                    // Time is up, we should be at the end of the path
-                    i = 1;
-                } else if ((this.interval - this.data.delay < 0)) {
-                    // We are still waiting for the delay-time to finish
-                    // so keep entity at the beginning of the path
-                    i = 0;
+                var i;
+                if (this.data.animate) {
+                    i = this.getI_(this.interval, this.data.delay, this.data.dur)
                 } else {
-                    // Update path position based on timing
-                    i = (this.interval - this.data.delay) / this.data.dur;
+                    i = this.data.progress || 0;
                 }
 
                 if ((this.data.loop === false) && i >= 1) {
@@ -106,17 +119,13 @@ AFRAME.registerComponent('alongpath', {
                 }
 
                 // Update Rotation of Entity
-                // Based on http://jsfiddle.net/qGPTT/133/
                 if (this.data.rotate === true) {
-                    var axis = new THREE.Vector3();
-                    var up = new THREE.Vector3(0, 1, 0);
-                    var tangent = curve.getTangentAt(i).normalize();
 
-                    axis.crossVectors(up, tangent).normalize();
+                    var nextInterval = this.interval + timeDelta
+                    var nextPosition = curve.getPoint(this.getI_(nextInterval, this.data.delay, this.data.dur));
 
-                    var radians = Math.acos(up.dot(tangent));
+                    this.el.object3D.lookAt(nextPosition)
 
-                    this.el.object3D.quaternion.setFromAxisAngle(axis, radians);
                 }
 
                 // Check for Active-Triggers
